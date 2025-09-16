@@ -1,0 +1,22 @@
+[
+  {
+    "idUnico": "c263bf5a-77ac-4cbb-8db9-249c307c25b0",
+    "nombre": "Papito",
+    "apellido": "",
+    "email": "planificarmedios@gmail.com",
+    "whatsapp": "318",
+    "mesa": "318",
+    "checkedIn": true,
+    "linkWhatsapp": ""
+  },
+  {
+    "idUnico": "5516a8f8-30f5-426d-9de0-69a05977f46a",
+    "nombre": "Chiche",
+    "apellido": "xxx",
+    "email": "respsicolatina@gmail.com",
+    "whatsapp": "2236065018",
+    "mesa": "915",
+    "checkedIn": true,
+    "linkWhatsapp": "https://wa.me/2236065018?text=Hola%20Chiche%20xxx%2C%20aqu%C3%AD%20est%C3%A1%20tu%20QR%20para%20el%20evento%3A%0Ahttps%3A%2F%2Fquickchart.io%2Fqr%3Ftext%3DInvitado%253A%2520Chiche%2520xxx%250AMesa%253A%2520915%250AID%253A5516a8f8-30f5-426d-9de0-69a05977f46a%26size%3D500"
+  }
+]
