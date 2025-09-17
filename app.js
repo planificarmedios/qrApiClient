@@ -13,6 +13,7 @@ function showBotText(text) {
 
 function loadBotAnimation(animPath) {
     if (botAnim) botAnim.destroy();
+
     botAnim = lottie.loadAnimation({
         container: botContainer,
         renderer: 'svg',
@@ -20,6 +21,7 @@ function loadBotAnimation(animPath) {
         autoplay: true,
         path: animPath
     });
+
     botText.style.animation = animPath.includes("Robot-Bot3D.json") ? "blink 1s infinite" : "";
 }
 
@@ -28,7 +30,7 @@ const animacionesPorRango = [
     { min: 1, max: 5, animPath: "/lottie/Robot-Bot3D.json" },
     { min: 6, max: 10, animPath: "/lottie/RobotHello.json" },
     { min: 11, max: 15, animPath: "/lottie/RobotLoading.json" },
-    { min: 16, max: 30, animPath: "/lottie/RobotAssistant.json" }
+    { min: 16, max: 30, animPath: "/lottie/RobotAssistant.json" },
 ];
 
 function getAnimacionPorMesa(mesa) {
@@ -57,7 +59,9 @@ async function initFaceDetection() {
 
     setInterval(async () => {
         if (!video.srcObject) return;
+
         const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
+
         if (detections.length === 0) {
             faceDetected = false;
             loadBotAnimation("/lottie/Mapping.json");
@@ -84,6 +88,7 @@ async function populateCameraOptions() {
 
     const faceSelect = document.getElementById('faceCamSelect');
     const qrSelect = document.getElementById('qrCamSelect');
+
     faceSelect.innerHTML = '';
     qrSelect.innerHTML = '';
 
@@ -108,13 +113,15 @@ document.getElementById('saveCamSelection').onclick = async () => {
     if (qrScanner) await qrScanner.stop().catch(() => {});
 
     try {
-        // Cámara de rostros
-        faceStream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: faceCamId ? { exact: faceCamId } : undefined }});
+        // Iniciar cámara de rostro
+        faceStream = await navigator.mediaDevices.getUserMedia({
+            video: faceCamId ? { deviceId: { exact: faceCamId } } : { facingMode: "user" }
+        });
         video.srcObject = faceStream;
         initFaceDetection();
 
-        // Cámara de QR
-        startQrScanner(qrCamId ? { deviceId: { exact: qrCamId } } : { video: true });
+        // Iniciar cámara de QR
+        startQrScanner(qrCamId);
 
         document.getElementById('camModal').style.display = 'none';
     } catch (err) {
@@ -125,10 +132,12 @@ document.getElementById('saveCamSelection').onclick = async () => {
 // ---------------- CONFETTI ----------------
 const confettiCanvas = document.getElementById("confettiCanvas");
 let lastConfetti = 0;
+
 function launchConfetti() {
     const now = Date.now();
     if (now - lastConfetti < 2000) return;
     lastConfetti = now;
+
     if(!confettiCanvas) return;
     const myConfetti = confetti.create(confettiCanvas, { resize: true, useWorker: true });
     myConfetti({
@@ -143,8 +152,13 @@ function launchConfetti() {
 }
 
 // ---------------- QR SCANNER ----------------
-async function startQrScanner(cameraConfig) { 
+async function startQrScanner(qrCamId) {
     qrScanner = new Html5Qrcode("qrVideo");
+
+    // Configuración correcta de cámara
+    const cameraConfig = qrCamId
+        ? { deviceId: { exact: qrCamId } }
+        : { facingMode: "environment" };
 
     try {
         await qrScanner.start(
@@ -152,17 +166,17 @@ async function startQrScanner(cameraConfig) {
             { fps: 10, qrbox: 250 },
             qrCodeMessage => {
                 qrResult.style.color = "lime";
-
                 let mensajeFinal = "QR inválido";
                 let nroMesa = 0;
 
                 if (qrCodeMessage.includes(" | ")) {
                     const partes = qrCodeMessage.split(" | ");
-                    const mensaje = partes[0];                    
-                    const codigo = partes[1];                     
+                    const mensaje = partes[0];
+                    const codigo = partes[1];
                     nroMesa = parseInt(codigo.split("-")[1]) || 0;
                     mensajeFinal = `${mensaje} ${nroMesa}`;
 
+                    // Cargar animación según el rango de mesa
                     const animPath = getAnimacionPorMesa(nroMesa);
                     loadBotAnimation(animPath);
                 }
@@ -171,7 +185,7 @@ async function startQrScanner(cameraConfig) {
                 showBotText("✅ " + mensajeFinal);
                 launchConfetti();
 
-                // RESET AUTOMÁTICO
+                // Reset automático después de 5s
                 setTimeout(() => {
                     qrResult.textContent = "📷 Cámara activada, apunta a un QR";
                     qrResult.style.color = "#fef9f9ff";
@@ -183,6 +197,7 @@ async function startQrScanner(cameraConfig) {
                 console.log("Escaneo activo, sin QR todavía");
             }
         );
+
         qrResult.style.color = "#fef9f9ff";
         qrResult.textContent = "📷 Cámara activada, apunta a un QR";
     } catch(err) {
