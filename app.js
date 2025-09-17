@@ -36,7 +36,8 @@ function loadBotAnimation(animPath) {
 const animacionesPorRango = [
     { min: 1, max: 5, animPath: "lottie/Robot-Bot3D.json" },
     { min: 6, max: 10, animPath: "lottie/Mapping.json" },
-    { min: 11, max: 30, animPath: "lottie/RobotHello.json" },
+    { min: 11, max: 25, animPath: "lottie/Energy-Robot.json" },
+    { min: 16, max: 30, animPath: "lottie/RobotHello.json" },
 ];
 
 function getAnimacionPorMesa(mesa) {
@@ -114,6 +115,10 @@ function launchConfetti() {
 }
 
 // ---------------- QR SCANNER ----------------
+
+// ---------------- QR SCANNER ----------------
+let qrLock = false; // Evita múltiples lecturas seguidas
+
 async function startQrScanner(qrCamId) { 
     qrScanner = new Html5Qrcode("qrVideo");
 
@@ -122,6 +127,9 @@ async function startQrScanner(qrCamId) {
             { deviceId: { exact: qrCamId } },
             { fps: 10, qrbox: 250 },
             qrCodeMessage => {
+                if (qrLock) return; // Ignora si ya está procesando un QR
+                qrLock = true;
+
                 qrResult.style.color = "lime";
 
                 let mensajeFinal = "QR inválido";
@@ -149,6 +157,7 @@ async function startQrScanner(qrCamId) {
                     qrResult.style.color = "#fef9f9ff";
                     loadBotAnimation("lottie/RobotDefault.json");
                     showBotText(" ");
+                    qrLock = false; // 🔓 Desbloquea para aceptar otro QR
                 }, 5000);
             },
             errorMessage => {
@@ -164,3 +173,4 @@ async function startQrScanner(qrCamId) {
         qrResult.textContent = "❌ Error iniciando lector QR: " + err;
     }
 }
+
