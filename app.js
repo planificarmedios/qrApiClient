@@ -94,14 +94,16 @@ document.getElementById('saveCamSelection').onclick = async () => {
     }
 };
 
-// ---------------- CONFETTI ----------------
+// ---------------- EFECTOS VISUALES ----------------
 const confettiCanvas = document.getElementById("confettiCanvas");
-let lastConfetti = 0;
+let lastEffect = 0;
+
 function launchConfetti() {
     const now = Date.now();
-    if (now - lastConfetti < 2000) return;
-    lastConfetti = now;
-    if(!confettiCanvas) return;
+    if (now - lastEffect < 2000) return;
+    lastEffect = now;
+
+    if (!confettiCanvas) return;
     const myConfetti = confetti.create(confettiCanvas, { resize: true, useWorker: true });
     myConfetti({
         particleCount: 200,
@@ -114,7 +116,24 @@ function launchConfetti() {
     });
 }
 
-// ---------------- QR SCANNER ----------------
+function launchBalloons() {
+    const now = Date.now();
+    if (now - lastEffect < 2000) return;
+    lastEffect = now;
+
+    if (!confettiCanvas) return;
+    const myConfetti = confetti.create(confettiCanvas, { resize: true, useWorker: true });
+    myConfetti({
+        particleCount: 30,
+        spread: 40,
+        startVelocity: 10,
+        gravity: -0.2, // negativo → flotan hacia arriba
+        ticks: 400,
+        origin: { y: 1 }, // salen desde abajo
+        scalar: 2,
+        colors: ['#ff6b6b','#ffd93d','#6bcBef','#51cf66','#845ef7']
+    });
+}
 
 // ---------------- QR SCANNER ----------------
 let qrLock = false; // Evita múltiples lecturas seguidas
@@ -127,7 +146,7 @@ async function startQrScanner(qrCamId) {
             { deviceId: { exact: qrCamId } },
             { fps: 10, qrbox: 250 },
             qrCodeMessage => {
-                if (qrLock) return; // Ignora si ya está procesando un QR
+                if (qrLock) return;
                 qrLock = true;
 
                 qrResult.style.color = "lime";
@@ -142,14 +161,20 @@ async function startQrScanner(qrCamId) {
                     nroMesa = parseInt(codigo.split("-")[1]) || 0;
                     mensajeFinal = `${mensaje} ${nroMesa}`;
 
-                    // Cargar animación según la mesa detectada
+                    // Animación según la mesa
                     const animPath = getAnimacionPorMesa(nroMesa);
                     loadBotAnimation(animPath);
                 }
 
                 qrResult.textContent = "✅ " + mensajeFinal;
                 showBotText("✅ " + mensajeFinal);
-                launchConfetti();
+
+                // 🎉 Confetti mesas 1–5 | 🎈 Globos mesas >5
+                if (nroMesa > 0 && nroMesa <= 5) {
+                    launchConfetti();
+                } else if (nroMesa > 5) {
+                    launchBalloons();
+                }
 
                 // Reset al estado inicial después de 5 segundos
                 setTimeout(() => {
@@ -157,7 +182,7 @@ async function startQrScanner(qrCamId) {
                     qrResult.style.color = "#fef9f9ff";
                     loadBotAnimation("lottie/RobotDefault.json");
                     showBotText(" ");
-                    qrLock = false; // 🔓 Desbloquea para aceptar otro QR
+                    qrLock = false; // 🔓 habilita para otro QR
                 }, 5000);
             },
             errorMessage => {
@@ -173,4 +198,3 @@ async function startQrScanner(qrCamId) {
         qrResult.textContent = "❌ Error iniciando lector QR: " + err;
     }
 }
-
