@@ -1,3 +1,12 @@
+// ---------------- CONFIGURACIÓN DE RUTAS ----------------
+const ROOT_PATH = window.location.hostname.includes("github.io") 
+    ? "/qrApiClient/"  // Reemplaza con tu repo si cambia
+    : "/";              // Localhost
+
+function asset(path) {
+    return ROOT_PATH + path.replace(/^\/+/, "");
+}
+
 // ---------------- BOT LOTTIE ----------------
 const botContainer = document.getElementById('bot');
 const botText = document.getElementById('botText');
@@ -13,71 +22,44 @@ function showBotText(text) {
 
 function loadBotAnimation(animPath) {
     if (botAnim) botAnim.destroy();
-
     botAnim = lottie.loadAnimation({
         container: botContainer,
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: animPath
+        path: asset(animPath)
     });
-
     botText.style.animation = animPath.includes("Robot-Bot3D.json") ? "blink 1s infinite" : "";
 }
 
-// ---------------- CONFIGURACIÓN DE ANIMACIONES POR RANGO DE MESA ----------------
+// ---------------- ANIMACIONES POR RANGO DE MESA ----------------
 const animacionesPorRango = [
-    { min: 1, max: 5, animPath: "/lottie/Robot-Bot3D.json" },
-    { min: 6, max: 10, animPath: "/lottie/RobotHello.json" },
-    { min: 11, max: 15, animPath: "/lottie/RobotLoading.json" },
-    { min: 16, max: 30, animPath: "/lottie/RobotAssistant.json" },
+    { min: 1, max: 5, animPath: "lottie/Robot-Bot3D.json" },
+    { min: 6, max: 10, animPath: "lottie/RobotHello.json" },
+    { min: 11, max: 15, animPath: "lottie/RobotLoading.json" },
+    { min: 16, max: 30, animPath: "lottie/RobotAssistant.json" },
 ];
 
 function getAnimacionPorMesa(mesa) {
     for (const rango of animacionesPorRango) {
         if (mesa >= rango.min && mesa <= rango.max) return rango.animPath;
     }
-    return "/lottie/Mapping.json";
+    return "lottie/Mapping.json"; // por defecto
 }
 
 // Animación inicial
-loadBotAnimation("/lottie/Mapping.json");
+loadBotAnimation("lottie/Mapping.json");
 
 // ---------------- VARIABLES ----------------
-let faceStream = null;
 let qrScanner = null;
-let faceDetected = false;
-
-const video = document.getElementById('video');   // cámara de rostros
 const qrResult = document.getElementById('qrResult');
-
-// ---------------- FACE DETECTION ----------------
-async function initFaceDetection() {
-    await faceapi.nets.tinyFaceDetector.loadFromUri(
-        "https://justadudewhohacks.github.io/face-api.js/models/"
-    );
-
-    setInterval(async () => {
-        if (!video.srcObject) return;
-
-        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
-
-        if (detections.length === 0) {
-            faceDetected = false;
-            loadBotAnimation("/lottie/Mapping.json");
-        } else if (detections.length > 0 && !faceDetected) {
-            faceDetected = true;
-            loadBotAnimation("/lottie/Robot-Bot3D.json");
-        }
-    }, 1000);
-}
+const video = document.getElementById('video');
 
 // ---------------- MODAL CAMARAS ----------------
 document.getElementById('selectCamsBtn').onclick = async () => {
     document.getElementById('camModal').style.display = 'flex';
     await populateCameraOptions();
 };
-
 document.getElementById('closeCamModal').onclick = () => {
     document.getElementById('camModal').style.display = 'none';
 };
@@ -86,58 +68,39 @@ async function populateCameraOptions() {
     const devices = await navigator.mediaDevices.enumerateDevices();
     const videoDevices = devices.filter(d => d.kind === 'videoinput');
 
-    const faceSelect = document.getElementById('faceCamSelect');
     const qrSelect = document.getElementById('qrCamSelect');
-
-    faceSelect.innerHTML = '';
     qrSelect.innerHTML = '';
-
     videoDevices.forEach((d, i) => {
-        const opt1 = document.createElement('option');
-        opt1.value = d.deviceId;
-        opt1.text = d.label || `Cámara ${i + 1}`;
-        faceSelect.appendChild(opt1);
-
-        const opt2 = document.createElement('option');
-        opt2.value = d.deviceId;
-        opt2.text = d.label || `Cámara ${i + 1}`;
-        qrSelect.appendChild(opt2);
+        const opt = document.createElement('option');
+        opt.value = d.deviceId;
+        opt.text = d.label || `Cámara ${i + 1}`;
+        qrSelect.appendChild(opt);
     });
 }
 
+// ---------------- INICIAR CÁMARA DE QR ----------------
 document.getElementById('saveCamSelection').onclick = async () => {
-    const faceCamId = document.getElementById('faceCamSelect').value;
     const qrCamId = document.getElementById('qrCamSelect').value;
 
-    if (faceStream) faceStream.getTracks().forEach(t => t.stop());
     if (qrScanner) await qrScanner.stop().catch(() => {});
 
     try {
-        // Iniciar cámara de rostro
-        faceStream = await navigator.mediaDevices.getUserMedia({
-            video: faceCamId ? { deviceId: { exact: faceCamId } } : { facingMode: "user" }
-        });
-        video.srcObject = faceStream;
-        initFaceDetection();
-
-        // Iniciar cámara de QR
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: qrCamId } } });
+        video.srcObject = stream;
         startQrScanner(qrCamId);
-
         document.getElementById('camModal').style.display = 'none';
     } catch (err) {
-        console.error("❌ Error iniciando cámaras:", err);
+        console.error("❌ Error iniciando cámara QR:", err);
     }
 };
 
 // ---------------- CONFETTI ----------------
 const confettiCanvas = document.getElementById("confettiCanvas");
 let lastConfetti = 0;
-
 function launchConfetti() {
     const now = Date.now();
     if (now - lastConfetti < 2000) return;
     lastConfetti = now;
-
     if(!confettiCanvas) return;
     const myConfetti = confetti.create(confettiCanvas, { resize: true, useWorker: true });
     myConfetti({
@@ -152,31 +115,27 @@ function launchConfetti() {
 }
 
 // ---------------- QR SCANNER ----------------
-async function startQrScanner(qrCamId) {
+async function startQrScanner(qrCamId) { 
     qrScanner = new Html5Qrcode("qrVideo");
-
-    // Configuración correcta de cámara
-    const cameraConfig = qrCamId
-        ? { deviceId: { exact: qrCamId } }
-        : { facingMode: "environment" };
 
     try {
         await qrScanner.start(
-            cameraConfig,
+            { deviceId: { exact: qrCamId } },
             { fps: 10, qrbox: 250 },
             qrCodeMessage => {
                 qrResult.style.color = "lime";
+
                 let mensajeFinal = "QR inválido";
                 let nroMesa = 0;
 
                 if (qrCodeMessage.includes(" | ")) {
                     const partes = qrCodeMessage.split(" | ");
-                    const mensaje = partes[0];
-                    const codigo = partes[1];
+                    const mensaje = partes[0];                    
+                    const codigo = partes[1];                     
                     nroMesa = parseInt(codigo.split("-")[1]) || 0;
                     mensajeFinal = `${mensaje} ${nroMesa}`;
 
-                    // Cargar animación según el rango de mesa
+                    // Cargar animación según la mesa detectada
                     const animPath = getAnimacionPorMesa(nroMesa);
                     loadBotAnimation(animPath);
                 }
@@ -185,11 +144,11 @@ async function startQrScanner(qrCamId) {
                 showBotText("✅ " + mensajeFinal);
                 launchConfetti();
 
-                // Reset automático después de 5s
+                // Reset al estado inicial después de 5 segundos
                 setTimeout(() => {
                     qrResult.textContent = "📷 Cámara activada, apunta a un QR";
                     qrResult.style.color = "#fef9f9ff";
-                    loadBotAnimation("/lottie/Mapping.json");
+                    loadBotAnimation("lottie/Mapping.json");
                     showBotText(" ");
                 }, 5000);
             },
