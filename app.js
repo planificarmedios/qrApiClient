@@ -157,7 +157,7 @@ async function startQrScanner(qrCamId) {
         );
 
         qrResult.style.color = "#fef9f9ff";
-        qrResult.textContent = "📷 Cámara activada, apunta a un QR";
+        qrResult.textContent = "📷 Cámara activada, apunta tu QR";
     } catch(err) {
         console.error("❌ Error iniciando lector QR:", err);
         qrResult.style.color = "red";
