@@ -36,8 +36,7 @@ function loadBotAnimation(animPath) {
 const animacionesPorRango = [
     { min: 1, max: 5, animPath: "lottie/Robot-Bot3D.json" },
     { min: 6, max: 10, animPath: "lottie/Mapping.json" },
-    { min: 11, max: 15, animPath: "lottie/RobotLoading.json" },
-    { min: 16, max: 30, animPath: "lottie/RobotAssistant.json" },
+    { min: 11, max: 30, animPath: "lottie/RobotHello.json" },
 ];
 
 function getAnimacionPorMesa(mesa) {
