@@ -35,7 +35,7 @@ function loadBotAnimation(animPath) {
 // ---------------- ANIMACIONES POR RANGO DE MESA ----------------
 const animacionesPorRango = [
     { min: 1, max: 5, animPath: "lottie/Robot-Bot3D.json" },
-    { min: 6, max: 10, animPath: "lottie/RobotHello.json" },
+    { min: 6, max: 10, animPath: "lottie/Mapping.json" },
     { min: 11, max: 15, animPath: "lottie/RobotLoading.json" },
     { min: 16, max: 30, animPath: "lottie/RobotAssistant.json" },
 ];
@@ -44,11 +44,11 @@ function getAnimacionPorMesa(mesa) {
     for (const rango of animacionesPorRango) {
         if (mesa >= rango.min && mesa <= rango.max) return rango.animPath;
     }
-    return "lottie/Mapping.json"; // por defecto
+    return "lottie/RobotDefault.json"; // por defecto
 }
 
 // Animación inicial
-loadBotAnimation("lottie/Mapping.json");
+loadBotAnimation("lottie/RobotDefault.json");
 
 // ---------------- VARIABLES ----------------
 let qrScanner = null;
@@ -148,7 +148,7 @@ async function startQrScanner(qrCamId) {
                 setTimeout(() => {
                     qrResult.textContent = "📷 Cámara activada, apunta a un QR";
                     qrResult.style.color = "#fef9f9ff";
-                    loadBotAnimation("lottie/Mapping.json");
+                    loadBotAnimation("lottie/RobotDefault.json");
                     showBotText(" ");
                 }, 5000);
             },
